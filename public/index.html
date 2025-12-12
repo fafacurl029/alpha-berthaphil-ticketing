@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Alpha berthaphil — Ticketing</title>
+  <link rel="stylesheet" href="/assets/app.css"/>
+</head>
+<body>
+  <div class="container">
+    <div class="card" style="overflow:hidden">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo"></div>
+          <div>
+            <div class="h2">Alpha berthaphil</div>
+            <div class="small muted">Shared IT Ticketing</div>
+          </div>
+        </div>
+        <div class="row" style="align-items:center;gap:10px;flex-wrap:wrap;">
+          <span id="who" class="badge">...</span>
+          <button class="btn" id="btnLogout">Logout</button>
+          <button class="btn primary" id="btnNewTicket">New Ticket</button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="nav card" style="box-shadow:none;margin:16px;border-radius:16px;padding:12px">
+          <a href="#" data-view="tickets" class="active">Tickets</a>
+          <a href="#" data-view="reports">Reports</a>
+          <a href="#" data-view="users" id="navUsers" style="display:none">Users (Admin)</a>
+          <div class="hr"></div>
+          <div class="small muted" style="padding:4px 10px">
+            Tip: Use search + filters to track priority incidents quickly.
+          </div>
+        </div>
+
+        <div class="card" style="box-shadow:none;margin:16px;border-radius:16px;overflow:hidden">
+          <div id="viewTickets">
+            <div style="padding:14px;border-bottom:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+              <input class="input" id="q" placeholder="Search ticket no, title, program..." style="flex:1;min-width:220px">
+              <select class="select" id="fStatus" style="min-width:170px">
+                <option value="">All Status</option>
+                <option>OPEN</option>
+                <option>IN_PROGRESS</option>
+                <option>DONE</option>
+                <option>CLOSED</option>
+              </select>
+              <select class="select" id="fPriority" style="min-width:170px">
+                <option value="">All Priority</option>
+                <option>URGENT</option>
+                <option>HIGH</option>
+                <option>MEDIUM</option>
+                <option>LOW</option>
+              </select>
+              <button class="btn" id="btnRefresh">Refresh</button>
+            </div>
+
+            <div class="split" style="padding:14px">
+              <div class="card" style="box-shadow:none;border-radius:16px;overflow:hidden">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th style="width:140px">Ticket</th>
+                      <th>Title</th>
+                      <th style="width:140px">Status</th>
+                      <th style="width:120px">Priority</th>
+                      <th style="width:220px">Updated</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ticketsTbody"></tbody>
+                </table>
+              </div>
+
+              <div class="card" style="box-shadow:none;border-radius:16px;padding:14px">
+                <div class="row" style="align-items:baseline;gap:10px;flex-wrap:wrap">
+                  <div class="h2">Ticket Details</div>
+                  <div id="detailNo" class="badge">Select a ticket</div>
+                </div>
+                <div class="hr"></div>
+
+                <div id="detailsEmpty" class="p">Select a ticket to view and update details.</div>
+
+                <div id="details" style="display:none" class="col">
+                  <div class="kpi">
+                    <div class="num" id="detailTitle">—</div>
+                  </div>
+
+                  <div class="row" style="gap:10px;flex-wrap:wrap">
+                    <div style="flex:1;min-width:140px">
+                      <div class="label">Status</div>
+                      <select class="select" id="detailStatus">
+                        <option>OPEN</option>
+                        <option>IN_PROGRESS</option>
+                        <option>DONE</option>
+                        <option>CLOSED</option>
+                      </select>
+                    </div>
+                    <div style="flex:1;min-width:140px">
+                      <div class="label">Priority</div>
+                      <select class="select" id="detailPriority">
+                        <option>URGENT</option>
+                        <option>HIGH</option>
+                        <option>MEDIUM</option>
+                        <option>LOW</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="label">Program</div>
+                    <input class="input" id="detailProgram" placeholder="e.g. ServiceNow, O365, Network">
+                  </div>
+                  <div>
+                    <div class="label">Category</div>
+                    <input class="input" id="detailCategory" placeholder="e.g. Incident, Request, Access, Change">
+                  </div>
+                  <div>
+                    <div class="label">Description</div>
+                    <textarea class="textarea" id="detailDescription" placeholder="Enter ticket details..."></textarea>
+                  </div>
+
+                  <div class="row" style="gap:10px;flex-wrap:wrap">
+                    <button class="btn primary" id="btnSaveTicket">Save Changes</button>
+                    <button class="btn" id="btnReloadTicket">Reload</button>
+                  </div>
+
+                  <div class="hr"></div>
+
+                  <div class="h2">Comments</div>
+                  <div id="comments" class="col" style="gap:10px"></div>
+
+                  <div>
+                    <div class="label">Add a comment</div>
+                    <textarea class="textarea" id="newComment" placeholder="Type update / troubleshooting notes..."></textarea>
+                    <div class="row" style="gap:10px;margin-top:10px">
+                      <button class="btn" id="btnAddComment">Post Comment</button>
+                    </div>
+                  </div>
+
+                  <div class="hr"></div>
+
+                  <div class="h2">Recent Activity</div>
+                  <div id="activity" class="col" style="gap:10px"></div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <div id="viewReports" style="display:none;padding:14px">
+            <div class="row" style="align-items:center;gap:10px;flex-wrap:wrap">
+              <div class="h2">Reports</div>
+              <span class="badge">CSV Export</span>
+            </div>
+            <div class="p" style="margin-top:8px">Export the shared ticket list to CSV for weekly/monthly reporting.</div>
+
+            <div class="hr"></div>
+
+            <div class="row" style="gap:10px;flex-wrap:wrap;align-items:end">
+              <div style="min-width:220px">
+                <div class="label">Filter Status</div>
+                <select class="select" id="rStatus">
+                  <option value="">All</option>
+                  <option>OPEN</option>
+                  <option>IN_PROGRESS</option>
+                  <option>DONE</option>
+                  <option>CLOSED</option>
+                </select>
+              </div>
+              <div style="min-width:220px">
+                <div class="label">Filter Priority</div>
+                <select class="select" id="rPriority">
+                  <option value="">All</option>
+                  <option>URGENT</option>
+                  <option>HIGH</option>
+                  <option>MEDIUM</option>
+                  <option>LOW</option>
+                </select>
+              </div>
+              <button class="btn primary" id="btnExport">Download CSV</button>
+            </div>
+
+            <div class="hr"></div>
+            <div class="small muted">Tip: Use OPEN + HIGH/URGENT to highlight SLA risks.</div>
+          </div>
+
+          <div id="viewUsers" style="display:none;padding:14px">
+            <div class="row" style="align-items:center;gap:10px;flex-wrap:wrap">
+              <div class="h2">User Management</div>
+              <span class="badge">Admin Only</span>
+            </div>
+            <div class="p" style="margin-top:8px">Create staff accounts and manage access.</div>
+
+            <div class="hr"></div>
+
+            <div class="split">
+              <div class="card" style="box-shadow:none;border-radius:16px;padding:14px">
+                <div class="h2">Create User</div>
+                <div class="col" style="margin-top:10px">
+                  <div>
+                    <div class="label">Name</div>
+                    <input class="input" id="uName" placeholder="e.g. Juan Dela Cruz">
+                  </div>
+                  <div>
+                    <div class="label">Email</div>
+                    <input class="input" id="uEmail" type="email" placeholder="staff@company.com">
+                  </div>
+                  <div class="row" style="gap:10px">
+                    <div style="flex:1">
+                      <div class="label">Role</div>
+                      <select class="select" id="uRole">
+                        <option>STAFF</option>
+                        <option>ADMIN</option>
+                      </select>
+                    </div>
+                    <div style="flex:1">
+                      <div class="label">Temp Password</div>
+                      <input class="input" id="uPass" type="text" placeholder="min 8 chars">
+                    </div>
+                  </div>
+                  <button class="btn primary" id="btnCreateUser">Create User</button>
+                </div>
+              </div>
+
+              <div class="card" style="box-shadow:none;border-radius:16px;overflow:hidden">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th style="width:90px">Role</th>
+                      <th style="width:90px">Active</th>
+                      <th style="width:140px">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="usersTbody"></tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Ticket Modal -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal">
+      <div class="head">
+        <div>
+          <div class="h2">Create Ticket</div>
+          <div class="small muted">Shared ticket visible to your team.</div>
+        </div>
+        <button class="btn" id="btnCloseModal">Close</button>
+      </div>
+      <div class="body">
+        <div class="split">
+          <div class="col">
+            <div>
+              <div class="label">Title</div>
+              <input class="input" id="nTitle" placeholder="Short issue summary (required)">
+            </div>
+            <div>
+              <div class="label">Program</div>
+              <input class="input" id="nProgram" placeholder="e.g. Network, O365, CRM">
+            </div>
+            <div class="row" style="gap:10px">
+              <div style="flex:1">
+                <div class="label">Priority</div>
+                <select class="select" id="nPriority">
+                  <option>URGENT</option>
+                  <option>HIGH</option>
+                  <option selected>MEDIUM</option>
+                  <option>LOW</option>
+                </select>
+              </div>
+              <div style="flex:1">
+                <div class="label">Category</div>
+                <input class="input" id="nCategory" placeholder="Incident / Request">
+              </div>
+            </div>
+            <div>
+              <div class="label">Description</div>
+              <textarea class="textarea" id="nDescription" placeholder="Symptoms, device/user, steps tried..."></textarea>
+            </div>
+            <div class="row" style="gap:10px;justify-content:flex-end">
+              <button class="btn primary" id="btnCreateTicket">Create</button>
+            </div>
+          </div>
+
+          <div class="card" style="box-shadow:none;border-radius:16px;padding:14px;background:rgba(255,255,255,0.04)">
+            <div class="h2">Quality checklist</div>
+            <div class="p small" style="margin-top:8px">
+              Include:
+              <ul class="small muted" style="margin-top:8px">
+                <li>Impact and urgency</li>
+                <li>Affected user/device</li>
+                <li>Error message/screenshots reference</li>
+                <li>Steps tried / workaround</li>
+                <li>Expected vs actual result</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div id="modalErr" class="small" style="color:var(--bad);display:none;margin-top:10px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="/assets/app.js"></script>
+  <script src="/assets/dashboard.js"></script>
+</body>
+</html>

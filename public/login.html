@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Alpha berthaphil — Login</title>
+  <link rel="stylesheet" href="/assets/app.css"/>
+</head>
+<body>
+  <div class="container" style="min-height:100%;display:flex;align-items:center;justify-content:center;">
+    <div class="card" style="width:min(520px,100%);overflow:hidden;">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo"></div>
+          <div>
+            <div class="h2">Alpha berthaphil</div>
+            <div class="small muted">IT Ticketing System</div>
+          </div>
+        </div>
+        <span class="badge">Secure Login</span>
+      </div>
+      <div style="padding:18px">
+        <p class="p">Sign in to access shared tickets, assignments, and reports.</p>
+
+        <div class="hr"></div>
+
+        <div class="col">
+          <div>
+            <div class="label">Email</div>
+            <input id="email" class="input" type="email" placeholder="you@company.com" autocomplete="username">
+          </div>
+          <div>
+            <div class="label">Password</div>
+            <input id="password" class="input" type="password" placeholder="••••••••" autocomplete="current-password">
+          </div>
+          <div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;">
+            <button id="btnLogin" class="btn primary">Login</button>
+            <a class="small muted" href="/setup.html">First time setup (Admin)</a>
+          </div>
+          <div id="err" class="small" style="color:var(--bad);display:none"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="/assets/app.js"></script>
+  <script>
+    (async function(){
+      try {
+        const me = await API.me();
+        if (me?.user) location.href = "/index.html";
+      } catch(e) {}
+
+      const btn = qs("#btnLogin");
+      btn.addEventListener("click", async () => {
+        qs("#err").style.display = "none";
+        btn.disabled = true; btn.textContent = "Signing in...";
+        try {
+          const email = qs("#email").value.trim();
+          const password = qs("#password").value;
+          const out = await API.login(email, password);
+          localStorage.setItem("ab_token", out.token);
+          localStorage.setItem("ab_user", JSON.stringify(out.user));
+          location.href = "/index.html";
+        } catch (e) {
+          qs("#err").textContent = e.message || "Login failed";
+          qs("#err").style.display = "block";
+        } finally {
+          btn.disabled = false; btn.textContent = "Login";
+        }
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") btn.click();
+      });
+    })();
+  </script>
+</body>
+</html>

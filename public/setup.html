@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Alpha berthaphil — Setup Admin</title>
+  <link rel="stylesheet" href="/assets/app.css"/>
+</head>
+<body>
+  <div class="container" style="min-height:100%;display:flex;align-items:center;justify-content:center;">
+    <div class="card" style="width:min(640px,100%);overflow:hidden;">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo"></div>
+          <div>
+            <div class="h2">Initial Admin Setup</div>
+            <div class="small muted">Create the first ADMIN account (runs once).</div>
+          </div>
+        </div>
+        <span class="badge">Bootstrap</span>
+      </div>
+      <div style="padding:18px">
+        <p class="p">
+          This page creates the <b>first</b> admin account only if none exists. You must provide the server BOOTSTRAP_TOKEN.
+        </p>
+
+        <div class="hr"></div>
+
+        <div class="split">
+          <div class="col">
+            <div>
+              <div class="label">BOOTSTRAP_TOKEN</div>
+              <input id="bootstrapToken" class="input" placeholder="Paste BOOTSTRAP_TOKEN here"/>
+              <div class="small muted">Keep this private. You can change it anytime in Render env vars.</div>
+            </div>
+            <div>
+              <div class="label">Admin Name</div>
+              <input id="name" class="input" placeholder="Alpha Admin"/>
+            </div>
+            <div>
+              <div class="label">Admin Email</div>
+              <input id="email" class="input" type="email" placeholder="admin@company.com"/>
+            </div>
+            <div>
+              <div class="label">Admin Password (min 8)</div>
+              <input id="password" class="input" type="password" placeholder="Create a strong password"/>
+            </div>
+
+            <div class="row" style="gap:10px;flex-wrap:wrap;">
+              <button id="btnCreate" class="btn primary">Create Admin</button>
+              <a class="btn" href="/login.html" style="text-decoration:none;display:inline-flex;align-items:center;">Back to login</a>
+            </div>
+            <div id="msg" class="small" style="display:none"></div>
+          </div>
+
+          <div class="card" style="padding:14px;box-shadow:none;background:rgba(255,255,255,0.04);border-radius:16px">
+            <div class="h2">Render checklist</div>
+            <div class="p small" style="margin-top:8px">
+              Add these env vars:
+              <div class="hr"></div>
+              <div style="font-family:var(--mono);font-size:12px;line-height:1.6">
+                DATABASE_URL<br/>
+                JWT_SECRET<br/>
+                BOOTSTRAP_TOKEN<br/>
+                APP_BASE_URL
+              </div>
+              <div class="hr"></div>
+              If you see “Admin already exists”, this setup is already done — go to login.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="/assets/app.js"></script>
+  <script>
+    const btn = qs("#btnCreate");
+    btn.addEventListener("click", async () => {
+      btn.disabled = true; btn.textContent = "Creating...";
+      qs("#msg").style.display = "none";
+      try {
+        await API.request("/api/bootstrap/admin", {
+          method: "POST",
+          body: JSON.stringify({
+            bootstrapToken: qs("#bootstrapToken").value.trim(),
+            name: qs("#name").value.trim(),
+            email: qs("#email").value.trim(),
+            password: qs("#password").value
+          })
+        });
+        toast("Admin created. You can login now.");
+        setTimeout(() => location.href = "/login.html", 900);
+      } catch (e) {
+        qs("#msg").textContent = e.message || "Setup failed";
+        qs("#msg").style.display = "block";
+        qs("#msg").style.color = "var(--bad)";
+      } finally {
+        btn.disabled = false; btn.textContent = "Create Admin";
+      }
+    });
+  </script>
+</body>
+</html>

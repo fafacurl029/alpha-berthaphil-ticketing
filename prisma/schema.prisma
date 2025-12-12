@@ -1,0 +1,75 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("STAFF") // "ADMIN" or "STAFF"
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  createdTickets Ticket[] @relation("CreatedBy")
+  assignedTickets Ticket[] @relation("AssignedTo")
+  comments       TicketComment[]
+  activities     TicketActivity[]
+}
+
+model Ticket {
+  id           String   @id @default(uuid())
+  ticketNo     String   @unique
+  title        String
+  description  String?
+  program      String?
+  category     String?
+  status       String   @default("OPEN")      // OPEN, IN_PROGRESS, DONE, CLOSED
+  priority     String   @default("MEDIUM")    // LOW, MEDIUM, HIGH, URGENT
+  source       String   @default("internal")  // internal, customer, monitoring, etc.
+
+  createdById  String
+  createdBy    User     @relation("CreatedBy", fields: [createdById], references: [id])
+
+  assignedToId String?
+  assignedTo   User?    @relation("AssignedTo", fields: [assignedToId], references: [id])
+
+  dueDate      DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  comments     TicketComment[]
+  activities   TicketActivity[]
+}
+
+model TicketComment {
+  id        String   @id @default(uuid())
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  message   String
+  createdAt DateTime @default(now())
+}
+
+model TicketActivity {
+  id        String   @id @default(uuid())
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String   // e.g. CREATED, UPDATED, ASSIGNED, STATUS_CHANGED, COMMENTED
+  meta      Json?
+  createdAt DateTime @default(now())
+}
+
+model TicketSequence {
+  dateKey   String @id // YYYYMMDD
+  nextSeq   Int    @default(0)
+  updatedAt DateTime @updatedAt
+}
