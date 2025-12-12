@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Alpha berthaphil — Login</title>
+  <link rel="icon" href="./assets/logo.svg" />
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="card cardGrid" role="main" aria-label="Login page">
+      <div class="hero">
+        <img src="./assets/logo.svg" alt="Alpha berthaphil logo" style="width:220px;height:auto" />
+        <h1 id="appName">Alpha berthaphil</h1>
+        <p id="appTag">Local-first IT ticketing for BPO support teams (Admin, Supervisor, Agent, Requester).</p>
+        <div class="badges">
+          <div class="badge">LocalStorage + IndexedDB</div>
+          <div class="badge">SLA timers</div>
+          <div class="badge">CSV export</div>
+          <div class="badge">Backup/Restore</div>
+          <div class="badge">Role-based access</div>
+        </div>
+        <hr class="sep">
+        <div class="notice">
+          Default demo credentials:
+          <div class="code" style="margin-top:6px">
+            Admin: <b>admin</b> / <b>admin123</b><br/>
+            Supervisor: <b>supervisor</b> / <b>super123</b><br/>
+            Agent: <b>agent</b> / <b>agent123</b><br/>
+            Requester: <b>requester</b> / <b>req123</b>
+          </div>
+        </div>
+      </div>
+
+      <div class="formWrap">
+        <h2>Sign in</h2>
+        <form id="loginForm" autocomplete="on">
+          <div class="field">
+            <label for="identifier">Username or Email</label>
+            <input id="identifier" type="text" required placeholder="e.g., admin" />
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <input id="password" type="password" required placeholder="••••••••" />
+          </div>
+          <div class="row">
+            <button class="btn" type="submit">Login</button>
+            <button class="btn secondary" type="button" id="resetDemo">Reset / Re-seed Demo Data</button>
+          </div>
+          <div class="helper" id="loginHint">Tip: Use the demo accounts above, or create new users under Admin once logged in.</div>
+        </form>
+
+        <footer class="smallFooter">
+          <span id="footBrand">Alpha berthaphil</span> · Local-only build (no server)
+        </footer>
+      </div>
+    </div>
+  </div>
+
+  <div class="toastHost" id="toastHost" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="./js/db.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/ui.js"></script>
+  <script>
+    (function(){
+      Alpha.DB.ensureSeed();
+      Alpha.UI.applyBrandingToLogin();
+
+      document.getElementById('loginForm').addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const identifier = document.getElementById('identifier').value.trim();
+        const password = document.getElementById('password').value;
+        try{
+          const user = await Alpha.Auth.login(identifier, password);
+          Alpha.UI.toast('Welcome', `Signed in as ${user.name} (${user.role})`, 'success');
+          window.location.href = './app.html#/dashboard';
+        }catch(err){
+          Alpha.UI.toast('Login failed', err.message || String(err), 'danger');
+        }
+      });
+
+      document.getElementById('resetDemo').addEventListener('click', async ()=>{
+        const ok = confirm('This will reset demo data in this browser. Continue?');
+        if(!ok) return;
+        Alpha.DB.resetAll();
+        Alpha.DB.ensureSeed(true);
+        Alpha.UI.applyBrandingToLogin();
+        Alpha.UI.toast('Reset done', 'Demo data reloaded. You can login using the default credentials.', 'success');
+      });
+    })();
+  </script>
+</body>
+</html>
